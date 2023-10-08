@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import axios from "axios";
-import {FetchRequest, FetchResult, PostParams, PostParams2} from "../types/types";
+import {FetchRequest, FetchResult, PostParams} from "../types/types";
 import {getPageCount} from "../utils/pages";
 
 export const useDataApi = <T>(request: FetchRequest<T>): [FetchResult<T>] => {
@@ -15,7 +15,7 @@ export const useDataApi = <T>(request: FetchRequest<T>): [FetchResult<T>] => {
     const [error, setError] = useState<string>('');
     const [totalPages, setTotalPages] = useState<number>(0);
     const [params, setParams]
-        = useState<PostParams | PostParams2>(initialParams);
+        = useState<PostParams | null>(initialParams);
 
     useEffect(() => {
         let didCancel = false;
@@ -28,7 +28,8 @@ export const useDataApi = <T>(request: FetchRequest<T>): [FetchResult<T>] => {
                     params: params
                 });
                 const totalCount = result.headers["x-total-count"]
-                setTotalPages(getPageCount(totalCount, params._limit));
+
+                setTotalPages(getPageCount(totalCount ?? 0, params?._limit ?? 1));
 
                 if (!didCancel) {
                     setData(result.data);

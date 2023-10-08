@@ -1,18 +1,21 @@
 import React, {FC} from 'react';
-import {PostParams, PostParams2} from "../types/types";
+import {PostParams} from "../types/types";
 
 
 interface PaginationProps {
     pages: number[],
-    postsParams: PostParams | PostParams2,
-    setPostParams: (postParams: PostParams | PostParams2) => void
+    postsParams: PostParams | null,
+    setPostParams: (postParams: PostParams | null) => void
 }
 
 const Pagination: FC<PaginationProps> = ({
                                              pages, postsParams, setPostParams
                                          }) => {
     const goToPage = (e: React.MouseEvent<HTMLSpanElement>, page: number): void => {
-        setPostParams({...postsParams, _page: page});
+        if (postsParams) {
+            setPostParams({...postsParams, _page: page});
+        }
+
     }
 
     return (
@@ -20,7 +23,7 @@ const Pagination: FC<PaginationProps> = ({
             {pages.map(p =>
                 <span
                     key={p}
-                    className={postsParams._page === p ? 'page page__current' : 'page'}
+                    className={(postsParams?._page ?? 0) === p ? 'page page__current' : 'page'}
                     onClick={(event) => goToPage(event, p)}>
                         {p}
                     </span>

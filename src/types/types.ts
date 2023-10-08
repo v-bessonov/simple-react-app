@@ -7,15 +7,22 @@ export interface Post extends Entity {
     body?: string
 }
 
+export interface Comment extends Entity {
+    postId: number,
+    name: string,
+    email: string,
+    body?: string
+}
+
 export interface FetchGet {
     url: string,
-    params: PostParams | PostParams2
+    params: PostParams | null
 }
 
 
 export interface FetchRequest<T> {
     initialGetParams: FetchGet,
-    initialData : T
+    initialData: T
 }
 
 export interface PostParams {
@@ -23,24 +30,15 @@ export interface PostParams {
     _page: number
 }
 
-export interface PostParams2 {
-    _limit: number,
-    _page: number
-}
-
-export interface PostParamsGet {
-
-}
-
 export interface FetchResult<T> {
     data: T,
     isLoading: boolean,
     error: string,
-    totalPages : number,
-    params: PostParams | PostParams2
+    totalPages: number,
+    params: PostParams | null
     setUrl: (url: string) => void,
-    setData : (data: T) => void,
-    setParams: (params: PostParams | PostParams2) => void
+    setData: (data: T) => void,
+    setParams: (params: PostParams | null) => void
 }
 
 export interface Option {

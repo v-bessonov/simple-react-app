@@ -20,7 +20,7 @@ export default function List<T extends Entity>(props: ListProps<T>) {
         <div>
             <TransitionGroup>
 
-                {items.map((item,index) => {
+                {items.map((item, index) => {
                     return <CSSTransition
                         key={item.id}
                         timeout={500}
@@ -30,7 +30,6 @@ export default function List<T extends Entity>(props: ListProps<T>) {
                     </CSSTransition>
                 })}
             </TransitionGroup>
-
         </div>
     )
 };

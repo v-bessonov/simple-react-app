@@ -1,6 +1,6 @@
-import {FC, useState} from "react";
+import {FC, useCallback, useEffect, useRef, useState} from "react";
 import {useDataApi} from "../hooks/useFetching";
-import {Filter, Post} from "../types/types";
+import {FetchGet, Filter, Post, PostParams} from "../types/types";
 import PostService from "../api/PostService";
 import {usePosts} from "../hooks/usePosts";
 import {usePagination} from "../hooks/usePagination";
@@ -12,6 +12,7 @@ import Loader from "../components/ui-kit/loader/Loader";
 import List from "../components/List";
 import PostItem from "../components/PostItem";
 import Pagination from "../components/Pagination";
+import {useObserver} from "../hooks/useObserver";
 
 
 const Posts: FC = () => {
@@ -21,9 +22,9 @@ const Posts: FC = () => {
         isLoading: isPostsLoading,
         error: postError,
         totalPages: postsTotalPages,
-        params: postsParam,
+        getParams: postsParam,
         setData: setPosts,
-        setParams: setPostParams
+        setGetParams: setPostParams
     }] = useDataApi<Post[]>({
             initialGetParams: {
                 ...PostService.getAll()
@@ -32,10 +33,11 @@ const Posts: FC = () => {
         }
     );
 
-
     const [filter, setFilter] = useState<Filter>({
         sort: '',
-        query: ''
+        query: '',
+        limit: '10',
+        isInfiniteScroll: true
     })
 
     const [modal, setModal] = useState<boolean>(false)
@@ -58,6 +60,36 @@ const Posts: FC = () => {
         setModal(true);
     }
 
+
+    const targetRef = useRef<HTMLDivElement | null>(null);
+
+    const onViewPortIn = useCallback(() => {
+        setPostParams({
+            ...postsParam as FetchGet, params: {
+                ...postsParam?.params as PostParams,
+                _page: (postsParam?.params?._page ?? 0) + 1,
+                isInfiniteScroll: true
+            } as PostParams
+        });
+    }, [postsParam, setPostParams]);
+
+    useObserver(targetRef,
+        (postsParam?.params?._page ?? 0) < postsTotalPages
+        ,
+        isPostsLoading,
+        onViewPortIn);
+
+
+    useEffect(() => {
+        setPostParams({
+            ...postsParam as FetchGet, params: {
+                ...postsParam?.params as PostParams,
+                _limit: Number(filter.limit),
+                isInfiniteScroll: filter.isInfiniteScroll
+            } as PostParams
+        });
+    }, [filter.limit, filter.isInfiniteScroll]);
+
     return (
         <div className="App">
 
@@ -72,24 +104,30 @@ const Posts: FC = () => {
             <hr style={{margin: '15px 0'}}/>
 
             <PostFilter filter={filter} setFilter={setFilter}/>
-
-            {postError && <h1>Error occurred ${postError}</h1>}
-            {
-                isPostsLoading
-                    ? <div style={{display: 'flex', justifyContent: 'center', marginTop: '50px'}}>
-                        <Loader/></div>
-                    :
-                    <List
-                        items={sortedAndSearchedPosts}
-                        emptyItemsMessage="Post not found"
-                        renderItem={(post: Post) =>
-                            <PostItem post={post} key={post.id} remove={removePost}/>
-                        }
-                    />
-            }
-
             <Pagination pages={pages} postsParams={postsParam} setPostParams={setPostParams}/>
 
+            {
+                postError
+                &&
+                <h1>Error occurred ${postError}</h1>
+            }
+
+            <List
+                items={sortedAndSearchedPosts}
+                emptyItemsMessage="Post not found"
+                renderItem={(post: Post) =>
+                    <PostItem post={post} key={post.id} remove={removePost}/>
+                }
+            />
+            {
+                isPostsLoading
+                &&
+                <div style={{display: 'flex', justifyContent: 'center', marginTop: '50px'}}>
+                    <Loader/></div>
+            }
+
+            <div ref={targetRef} style={{height: '20px'}}>
+            </div>
         </div>
     );
 }

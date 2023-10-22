@@ -1,24 +1,30 @@
 import {useEffect, useState} from "react";
 import axios from "axios";
-import {FetchRequest, FetchResult, PostParams} from "../types/types";
+import {FetchGet, FetchRequest, FetchResult} from "../types/types";
 import {getPageCount} from "../utils/pages";
 
 export const useDataApi = <T>(request: FetchRequest<T>): [FetchResult<T>] => {
 
     const {initialGetParams, initialData} = request;
-    const {url: initialUrl, params: initialParams} = initialGetParams;
 
     const [data, setData] = useState<T>(initialData);
-    const [url, setUrl] = useState<string>(initialUrl);
     const [isLoading, setIsLoading]
         = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [totalPages, setTotalPages] = useState<number>(0);
-    const [params, setParams]
-        = useState<PostParams | null>(initialParams);
+
+    const [getParams, setGetParams]
+        = useState<FetchGet>(initialGetParams);
+
+    const isInfiniteScroll = getParams.params?.isInfiniteScroll ?? false;
 
     useEffect(() => {
         let didCancel = false;
+        const {
+            url,
+            params
+        } = getParams;
+
         const fetchData = async () => {
             setError('');
             setIsLoading(true);
@@ -27,30 +33,34 @@ export const useDataApi = <T>(request: FetchRequest<T>): [FetchResult<T>] => {
                 const result = await axios.get<T>(url, {
                     params: params
                 });
-                const totalCount = result.headers["x-total-count"]
+                const totalCount: number = result.headers["x-total-count"]
 
                 setTotalPages(getPageCount(totalCount ?? 0, params?._limit ?? 1));
 
+                const isArray = Array.isArray(result.data);
+
                 if (!didCancel) {
-                    setData(result.data);
+                    if (isInfiniteScroll && isArray) {
+                        setData(data => [...(data as T[]), ...(result.data as T[])] as T);
+                    } else {
+                        setData(result.data);
+                    }
+
                 }
             } catch (error: any) {
                 if (!didCancel) {
                     setError(error.message);
                 }
             }
-
-            setIsLoading(false);
+            setTimeout(() => { setIsLoading(false); }, 1000);
         };
 
-        fetchData().finally(() => {
-            console.log('DATA LOADED')
-        });
+        void fetchData();
 
         return () => {
             didCancel = true;
         };
-    }, [url, params]);
+    }, [getParams, isInfiniteScroll]);
 
-    return [{data, isLoading, error, totalPages, params, setUrl, setData, setParams}];
+    return [{data, isLoading, error, totalPages, getParams, setData, setGetParams}];
 };

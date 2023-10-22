@@ -27,7 +27,8 @@ export interface FetchRequest<T> {
 
 export interface PostParams {
     _limit: number,
-    _page: number
+    _page: number,
+    isInfiniteScroll : boolean
 }
 
 export interface FetchResult<T> {
@@ -35,10 +36,9 @@ export interface FetchResult<T> {
     isLoading: boolean,
     error: string,
     totalPages: number,
-    params: PostParams | null
-    setUrl: (url: string) => void,
+    getParams: FetchGet | null
     setData: (data: T) => void,
-    setParams: (params: PostParams | null) => void
+    setGetParams: (getParams: FetchGet) => void
 }
 
 export interface Option {
@@ -48,5 +48,7 @@ export interface Option {
 
 export interface Filter {
     sort: string,
-    query: string
+    query: string,
+    limit: string,
+    isInfiniteScroll : boolean
 }

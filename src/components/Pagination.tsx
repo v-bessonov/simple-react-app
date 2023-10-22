@@ -1,11 +1,10 @@
 import React, {FC} from 'react';
-import {PostParams} from "../types/types";
-
+import {FetchGet, PostParams} from "../types/types";
 
 interface PaginationProps {
     pages: number[],
-    postsParams: PostParams | null,
-    setPostParams: (postParams: PostParams | null) => void
+    postsParams: FetchGet | null,
+    setPostParams: (postParams: FetchGet) => void
 }
 
 const Pagination: FC<PaginationProps> = ({
@@ -13,9 +12,16 @@ const Pagination: FC<PaginationProps> = ({
                                          }) => {
     const goToPage = (e: React.MouseEvent<HTMLSpanElement>, page: number): void => {
         if (postsParams) {
-            setPostParams({...postsParams, _page: page});
+            setPostParams({
+                ...postsParams as FetchGet, params: {
+                    ...postsParams?.params as PostParams,
+                    _page: page,
+                    _limit: postsParams?.params?._limit ?? 1,
+                    isInfiniteScroll : false
+                } as PostParams
+            });
+            localStorage.setItem('page', page.toString());
         }
-
     }
 
     return (
@@ -23,7 +29,7 @@ const Pagination: FC<PaginationProps> = ({
             {pages.map(p =>
                 <span
                     key={p}
-                    className={(postsParams?._page ?? 0) === p ? 'page page__current' : 'page'}
+                    className={(postsParams?.params?._page ?? 0) === p ? 'page page__current' : 'page'}
                     onClick={(event) => goToPage(event, p)}>
                         {p}
                     </span>

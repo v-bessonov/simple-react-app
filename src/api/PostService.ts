@@ -2,11 +2,16 @@ import {FetchGet} from "../types/types";
 
 export default class PostService {
     static getAll(): FetchGet {
+        let page = 1
+        if (localStorage.getItem('page')) {
+            page = Number(localStorage.getItem('page'))
+        }
         return {
             url: 'https://jsonplaceholder.typicode.com/posts',
             params: {
                 _limit: 10,
-                _page: 3
+                _page: page,
+                isInfiniteScroll : true,
             }
         };
     }

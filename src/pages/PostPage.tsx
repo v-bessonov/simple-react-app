@@ -47,7 +47,6 @@ const PostPage: FC = () => {
                     ? <div style={{display: 'flex', justifyContent: 'center', marginTop: '50px'}}>
                         <Loader/></div>
                     :
-
                     <div>{post.title}</div>
             }
 
@@ -59,7 +58,7 @@ const PostPage: FC = () => {
                         <Loader/></div>
                     :
 
-                    <div style={{marginTop : '15px'}}>
+                    <div style={{marginTop: '15px'}}>
                         {comments.map(comment =>
                             <div key={comment.id}>
                                 <h5>{comment.email}</h5>
